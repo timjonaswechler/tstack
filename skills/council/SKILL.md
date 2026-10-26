@@ -5,16 +5,16 @@ description: Trigger this if the user says 'council'.
 
 # Council
 
-Bring in three delegates to help with the user's request, usually for review
-or feedback. Use one strong model from each of three different providers, at
-high reasoning effort. If the user's instructions name council members, use
-those. Otherwise pick the latest flagship model from each provider, for
-example Claude Opus, GPT Sol, and Gemini Pro.
+Bring in three independent delegates to help with the user's request, usually
+for review or feedback. First read and follow
+[OpenAI review models](../openai-review-models/SKILL.md) for model selection,
+reviewer focuses, and delegation. Start the three reviewers in parallel using
+that policy; the same OpenAI model may fill all three seats.
 
-In T3 Code, use `orchestrator_capabilities` to resolve the models, then
-`delegate_task` to start one delegate per model in parallel. Elsewhere, use
-the harness's subagent tools. If you cannot reach three providers, or a named
-member is unavailable, report it instead of substituting.
+For each fresh review round in T3 Code, use a new `delegate_task` per reviewer
+with the original brief, prior findings, responses, and unresolved objections.
+Retain each `taskId` and use a distinct `clientRequestId` per reviewer and round.
+The returned `childThreadId` is storage, not a target for further review rounds.
 
 Give each delegate the request and relevant context. For review or feedback,
 keep their work read-only. Collect their responses and summarize the useful
@@ -34,9 +34,9 @@ Rounds: 2
 
 | Delegate | Round 1 | Round 2 |
 | --- | --- | --- |
-| Claude Opus | 7/10 | 9/10 |
-| GPT Sol | 8/10 | 10/10 |
-| Gemini Pro | 7/10 | 9/10 |
+| <model> — correctness | 7/10 | 9/10 |
+| <model> — security/data integrity | 8/10 | 10/10 |
+| <model> — tests/spec compliance | 7/10 | 9/10 |
 ```
 
 If a delegate gives no score, write `no score`. Do not invent one.
