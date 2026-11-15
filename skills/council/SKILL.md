@@ -5,10 +5,12 @@ description: Trigger this if the user says 'council'.
 
 # Council
 
-Before an audit, address outstanding PR comments, fix known issues, and run
-relevant checks. Give council the updated implementation; do not defer known
-fixes until reviews return. If the user wants to discard the implementation
-and explore new ideas, skip fixes to code being replaced.
+Stay within the current task's permissions. Council adds reviewers, not edit,
+commit, push, PR-write, or testing-method permissions. For a read-only request,
+report known issues without fixing them. Where fixes and checks are authorized,
+address outstanding PR comments and known issues before the audit. If the user
+wants to discard the implementation, skip fixes to code being replaced.
+Explicit task restrictions and higher-priority harness rules always apply.
 
 Bring in three independent delegates to help with the user's request, usually
 for review or feedback. First read and follow
@@ -22,8 +24,11 @@ Retain each `taskId` and use a distinct `clientRequestId` per reviewer and round
 The returned `childThreadId` is storage, not a target for further review rounds.
 
 Give each delegate the request and relevant context. For review or feedback,
-keep their work read-only. Collect their responses and summarize the useful
-findings, disagreements, and recommended next steps.
+keep their work read-only and forbid further delegation. Collect their responses
+and summarize the useful findings, disagreements, and recommended next steps.
+Pin the goal, base, scoped paths, and working-tree contents (including untracked
+files); all reviewers inspect the same state. Existing observed check results
+may be reused only while they cover that unchanged state.
 
 Do not wait idle. When a result arrives, check its findings against the code
 at once and decide what to fix while the other delegates run. Do not edit
@@ -51,12 +56,20 @@ Rounds: 2
 ```
 
 If a delegate gives no score, write `no score`. Do not invent one.
-If the PR is open, edit the description. Do not post a comment for this.
-If there is no PR, put the same results in the final reply only.
+If the PR is open and PR edits are authorized, edit the description. Do not post
+a comment for this. Otherwise put the results in the final reply only.
 
-If you agree with their recommendations, make the changes and request a fresh
-review after. Continue this process until all delegates are satisfied with the
-outcome.
+## Budget and stopping
 
-Do not let repeated reviews result in scope creep. It is your job to fight to
-keep scope limited.
+- Default: at most three rounds, with at most three reviewers per round.
+  Retries and replacements consume reviewer slots; they do not reset the budget.
+  An explicit lower time, cost, or round limit wins. Do not extend silently.
+- In read-only mode, finish after the requested review and report findings.
+  With fix permission, make only agreed scoped changes, rerun affected checks,
+  and request a fresh review only while budget remains. Later rounds focus on
+  changed code and open findings; optional nits do not require another round.
+- Stop on agreement covering the current state, a blocker preventing review,
+  or the first budget limit. Missing reviewers, errors, and timeouts are gaps,
+  not approval. Report unresolved findings and disagreements at the limit.
+- Scores describe reviewer opinions, not executable proof or shipping permission.
+  Do not chase a score or let repeated reviews expand the task.

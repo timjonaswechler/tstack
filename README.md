@@ -11,8 +11,8 @@ not.
 |---|---|---|
 | `full-send` | "full send" | Takes a change to a merged PR with nobody watching: proves it, reviews it, files it, babysits it, merges it. |
 | `full-stop` | "full stop" | Same as `full-send`, but stops when the PR is ready for you to merge. |
-| `council` | "council" | Gets three independent OpenAI reviews with different focuses, and loops until they agree. |
-| `sol-loop` | "sol loop" | Reviews a change with a selected OpenAI model in a loop until both agents agree. |
+| `council` | "council" | Gets three OpenAI reviews with different focuses; read-only on request, otherwise at most three rounds by default. |
+| `sol-loop` | "sol loop" | Reviews a change with a selected OpenAI model within a bounded budget; unresolved findings are not approval. |
 | `openai-review-models` | (automatic) | Shared OpenAI-only model selection and delegation policy. |
 | `file-pr` | "file a PR" | Files a short PR that leads with the problem, not an inventory of changes. |
 | `takeover` | "take over" | Finishes someone else's PR, branch, or agent thread, and keeps their credit. |
@@ -50,26 +50,21 @@ cp -R tstack/skills/* ~/.codex/skills/    # Codex
 This fork keeps its OpenAI-only changes as commits on `main`. `origin` points
 to `timjonaswechler/tstack`; `upstream` points to `t3dotgg/tstack`.
 
-With the `~/.agents/justfile` installed:
+Our workspace uses [Fleet](https://github.com/timjonaswechler/fleet), not the
+former agents justfile. The checkout lives at `repositories/t3dotgg/tstack`;
+Fleet links the selected skills into the agents repository and updates only
+reviewed release revisions. Matt Pocock's collection is no longer an active
+dependency or an automatically updated repository.
 
-1. Run `just --justfile ~/.agents/justfile skills install` to clone the fork,
-   configure `upstream`, and symlink the skills into `~/.agents/skills`.
-2. Commit any local skill edits before updating. Run
-   `just --justfile ~/.agents/justfile skills update` to fast-forward from the
-   fork and merge `upstream/main`, preserving the fork's own commits. This also
-   updates the mattpocock skills. A dirty checkout or a branch other than `main`
-   stops the tstack update.
-3. If the upstream merge conflicts, resolve the files in `~/.agents/tstack`,
-   stage them, and run `git -C ~/.agents/tstack commit`. Alternatively cancel
-   that merge with `git -C ~/.agents/tstack merge --abort`. Rerun the update
-   after resolving to refresh skill links. A fork fast-forward failure also
-   stops the update and requires manual reconciliation; nothing is reset.
-4. Check the updated workflows still follow the OpenAI-only policy, then run
-   `git -C ~/.agents/tstack push origin main` to publish the merged updates.
-   The update command does not push automatically.
+Keep local edits intact and follow Fleet's prepare → review → release flow.
+Dirty checkouts and divergent history block updates rather than being reset.
+A server preparation does not publish a release; client updates only receive
+approved revisions. Follow the Fleet documentation for installation and rollout.
 
-`AGENTS_DIR` overrides `~/.agents`; `TSTACK_REPO_URL` overrides the fork URL for
-installation.
+Standalone use still works through the installation commands above. Own
+verification/diagnosis skills can supply current-state evidence to these flows;
+they are not prerequisites, do not add permissions, and do not replace review
+or merge gates.
 
 ## Make them yours
 

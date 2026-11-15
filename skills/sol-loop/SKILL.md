@@ -24,6 +24,10 @@ of scope creep and don't be scared to push back.
 - Stop early if a round returns only nits. Declined nits and comment,
   doc, or format-only fixes need no new round.
 - One reviewer only. The reviewer must not start subagents or reviewers.
+- Retries/replacements consume rounds. Stop on an earlier task time/cost limit;
+  never reset the budget after an error. Read-only requests get findings, not
+  fixes; finish after that review without starting a repair loop. The skill
+  grants no edits or testing methods beyond the current task.
 - Keep a ledger: id, severity, outcome, usage if returned. Never guess it.
 
 ## 1. Scope
@@ -42,8 +46,9 @@ Find the base after `git fetch origin`:
 
 The change is base to working tree in those paths, with untracked files.
 Use one diff command all rounds. State intent and out-of-scope in 1-2
-sentences. Run covering checks. Do not send code this change breaks. Note
-missing or pre-failing checks in the brief.
+sentences. Run covering checks, or reuse observed results that still cover the unchanged
+current state. Note missing or pre-failing checks in the brief; never hide a
+known failure to obtain approval.
 
 ## 2. Start the reviewer
 
@@ -59,7 +64,8 @@ supported route runs that model, report the blocker instead of substituting.
 
 Do not edit scoped files while review runs. Wait for the notice. Do not
 poll or start a second reviewer. Timeout, error, or no reply is not
-approval. On failure, cancel, verify stop, restart with the ledger.
+approval. On failure, cancel and verify stop. Restart with the ledger only if budget
+remains; otherwise report the gap.
 
 Round 1 brief (T3 children get no history):
 
@@ -69,9 +75,10 @@ Repo: <abs path> Base: <sha> Intent: <intent> Out of scope: <scope> Checks: <res
 See: git diff <base> [-- <paths>]; git status --short (read untracked).
 Read surrounding code. Find bugs, broken callers, mismatch with intent.
 Skip style unless it hides a bug. Hold to the smallest change. Flag code,
-tests, or guards the intent does not need. Other paths, rare cases, small
-perf, extra compat: nits.
-blocker = intended case wrong. should = real bug callers will hit, in intent. nit = rest.
+tests, or guards the intent does not need. Unrelated paths, speculative compatibility, and optional style are nits.
+Judge severity by impact and a demonstrated contract violation, not frequency.
+Rare security, data-integrity, cancellation, or concurrency failures can be serious.
+blocker = intended behavior unsafe or wrong. should = evidenced in-scope bug. nit = optional preference.
 Reply:
 VERDICT: APPROVE or CHANGES
 S1 [blocker|should|nit] <file>:<line> <claim>. Fix: <suggestion> (stable ids)
@@ -79,10 +86,12 @@ S1 [blocker|should|nit] <file>:<line> <claim>. Fix: <suggestion> (stable ids)
 
 ## 3. Answer findings
 
-Check each finding and severity yourself. Another path, rare case, or
-small cost is a nit, whatever label it came with.
+Check each finding and severity yourself. Distinguish unrelated requests and
+preferences from violations of existing behavior/security contracts. Rarity
+alone does not make a defect a nit.
 
-- Agree: smallest fix. Prefer delete or narrow over new lock, cache,
+- Agree: if fixes are authorized, make the smallest fix. Otherwise report it.
+  Prefer delete or narrow over new lock, cache,
   helper, or option. Fix the case that happened. Add one focused test
   that fails without the fix, if intent needs it.
 - Disagree: say why, with evidence (file:line, test, output).

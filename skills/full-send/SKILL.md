@@ -65,7 +65,12 @@ Code that is `watch_pull_request`. If you stop before the merge, call
 ## Proof
 
 Proof is evidence you observed yourself in this session: command output, a
-reproduction, a screenshot. Use the most direct proof the change allows:
+reproduction, a screenshot. Reuse existing observed results only when they
+cover the unchanged final state; otherwise rerun the affected checks. Protect
+the check path: weakening tests, changing expected outputs, skipping CI jobs,
+or adding waivers is not proof. Legitimate acceptance changes need a separate
+rationale and authorization. Confirm the expected tests actually ran.
+Use the most direct proof the change allows:
 
 - Reproduce the original failure, apply the fix, then watch the same
   reproduction pass.
